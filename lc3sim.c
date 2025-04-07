@@ -52,6 +52,10 @@
 #endif
 
 #include "lc3sim.h"
+#ifdef LC3SIM_INCBIN
+#include "lc3os-obj.h"
+#include "lc3os-sym.h"
+#endif
 #include "symbol.h"
 
 /* Disassembly format specification. */
@@ -639,6 +643,57 @@ read_sym_file (const unsigned char* filename)
     return 0;
 }
 
+static int
+read_obj_mem (const unsigned char* in_mem, size_t memsz, int* startp, int* endp)
+{
+    FILE* f;
+    int start, addr;
+    unsigned char buf[2];
+
+    if ((f = fmemopen (in_mem, memsz, "r")) == NULL)
+	return -1;
+    if (fread (buf, 2, 1, f) != 1) {
+        fclose (f);
+	return -1;
+    }
+    addr = start = (buf[0] << 8) | buf[1];
+    while (fread (buf, 2, 1, f) == 1) {
+	write_memory (addr, (buf[0] << 8) | buf[1]);
+	addr = (addr + 1) & 0xFFFF;
+    }
+    fclose (f);
+    squash_symbols (start, addr);
+    *startp = start;
+    *endp = addr;
+
+    return 0;
+}
+
+static int
+read_sym_mem (const unsigned char* in_mem, size_t memsz)
+{
+    FILE* f;
+    int adding = 0;
+    unsigned char buf[100];
+    unsigned char sym[81];
+    int addr;
+
+    if ((f = fmemopen (in_mem, memsz, "r")) == NULL)
+	return -1;
+    while (fgets (buf, 100, f) != NULL) {
+    	if (!adding) {
+	    if (sscanf (buf, "%*s%*s%80s", sym) == 1 &&
+	    	strcmp (sym, "------------") == 0)
+		adding = 1;
+	    continue;
+	}
+	if (sscanf (buf, "%*s%80s%x", sym, &addr) != 2)
+	    break;
+        add_symbol (sym, addr, 1);
+    }
+    fclose (f);
+    return 0;
+}
 
 static void 
 squash_symbols (int addr_s, int addr_e)
@@ -665,6 +720,27 @@ init_machine ()
     bzero (lc3_sym_hash, sizeof (lc3_sym_hash));
     clear_all_breakpoints ();
 
+#ifdef LC3SIM_INCBIN
+    // Data is built into binary, so it can be position-independent
+    if (read_obj_mem (lc3os_obj, lc3os_obj_len, &os_start, &os_end) == -1) {
+	if (gui_mode)
+	    puts ("ERR {Failed to read LC-3 OS code.}");
+	else
+	    puts ("Failed to read LC-3 OS code.");
+	show_state_if_stop_visible ();
+    } else {
+	if (read_sym_mem (lc3os_sym, lc3os_sym_len) == -1) {
+	    if (gui_mode)
+		puts ("ERR {Failed to read LC-3 OS symbols.}");
+	    else
+		puts ("Failed to read LC-3 OS symbols.");
+	}
+	if (gui_mode) /* load new code into GUI display */
+	    disassemble (os_start, os_end);
+	REG (R_PC) = 0x0200;
+	run_until_stopped ();
+    }
+#else
     if (read_obj_file (INSTALL_DIR "/lc3os.obj", &os_start, &os_end) == -1) {
 	if (gui_mode)
 	    puts ("ERR {Failed to read LC-3 OS code.}");
@@ -683,6 +759,7 @@ init_machine ()
 	REG (R_PC) = 0x0200;
 	run_until_stopped ();
     }
+#endif
 
     in_init = 0;
 

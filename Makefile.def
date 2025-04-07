@@ -135,14 +135,22 @@ lc3os.obj: ${LC3AS} lc3os.asm
 lc3os.sym: ${LC3AS} lc3os.asm
 	${LC3AS} lc3os
 
-lc3sim.o: lc3sim.c lc3.def lc3sim.h symbol.h
-	${GCC} -c ${CFLAGS} ${USE_READLINE} -DINSTALL_DIR="\"${INSTALL_DIR}\"" -DMAP_LOCATION_TO_SYMBOL -o lc3sim.o lc3sim.c
+lc3os-obj.h: lc3os.obj
+	xxd -i lc3os.obj lc3os-obj.h
+	sed -i 's/unsigned/unsigned const/' lc3os-obj.h
+
+lc3os-sym.h: lc3os.sym
+	xxd -i lc3os.sym lc3os-sym.h
+	sed -i 's/unsigned/unsigned const/' lc3os-sym.h
+
+lc3sim.o: lc3sim.c lc3.def lc3sim.h symbol.h lc3os-obj.h lc3os-sym.h
+	${GCC} -c ${CFLAGS} ${USE_READLINE} -DINSTALL_DIR="\"${INSTALL_DIR}\"" -DLC3SIM_INCBIN=1 -DMAP_LOCATION_TO_SYMBOL -o lc3sim.o lc3sim.c
 
 sim_symbol.o: symbol.c symbol.h
 	${GCC} -c ${CFLAGS} -DMAP_LOCATION_TO_SYMBOL -o sim_symbol.o symbol.c
 
 dist_lc3sim_clean::
-	${RM} -f *.o *~
+	${RM} -f *.o *~ lc3os-obj.h lc3os-sym.h
 
 dist_lc3sim_clear: dist_lc3sim_clean
 	${RM} -f lc3sim${EXE} lc3os.obj lc3os.sym

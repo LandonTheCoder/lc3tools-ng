@@ -17,7 +17,7 @@ esac
 
 # Some binaries that we'll need, and the places that we might find them.
 
-binlist="uname flex gcc wish rm cp mkdir chmod sed"
+binlist="uname flex gcc wish rm cp mkdir chmod sed xxd"
 pathlist="/bin /usr/bin /usr/local/bin /sw/bin /usr/x116/bin /usr/X11R6/bin"
 libpathlist="/lib /usr/lib /usr/local/lib"
 incpathlist="/include /usr/include /usr/local/include"
