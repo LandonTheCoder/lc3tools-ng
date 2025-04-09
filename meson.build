@@ -10,6 +10,8 @@ xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', required: true)
 
 ncurses = dependency('ncurses')
 readline = dependency('readline')
+# Indicates to build with readline support
+add_project_arguments('-DUSE_READLINE=1', language: 'c')
 
 # Test for needed functions
 if not cc.has_function('fmemopen')
@@ -61,16 +63,17 @@ lc3os_sym_h = custom_target('lc3os_sym_h',
                             command: ['scripts/generate-header-for-binary.sh', '@INPUT@', '@OUTPUT@'])
 
 lc3sim = executable('lc3sim', 'lc3sim.c', 'symbol.c', lc3os_obj_h, lc3os_sym_h,
-                    c_args: ['-DLC3SIM_INCBIN=1', '-DMAP_LOCATION_TO_SYMBOL', '-DUSE_READLINE=1'],
+                    c_args: ['-DLC3SIM_INCBIN=1', '-DMAP_LOCATION_TO_SYMBOL'],
                     dependencies: [readline],
                     install: true)
 
 # Now for lc3sim-tk, this requires substituting paths out.
-# Needed: @@WISH@@, @@LC3_SIM@@, @@CODE_FONT@@, @@BUTTON_FONT@@, @@CONSOLE_FONT@@
-#lc3sim_tk = custom_target('lc3sim_tk',
-#                          input: 'lc3sim-tk.def',
-#                          output: 'lc3sim-tk',
-#                          capture: true,
-#                          install: true,
-#                          install_mode: 'r-xr-xr-x',
-#                          command: [sed, -e
+lc3sim_tk = custom_target('lc3sim_tk',
+                          input: 'lc3sim-tk.def',
+                          output: 'lc3sim-tk',
+                          install: true,
+                          install_tag: 'runtime',
+                          install_dir: get_option('bindir'),
+                          install_mode: 'rwxr-xr-x',
+                          command: ['scripts/create-lc3sim-tk.sh',
+                                    '@INPUT@', '@OUTPUT@'])

@@ -1,4 +1,13 @@
 #! /bin/sh
+usage() {
+    echo "Usage: $0 INFILE OUTDIR LC3AS_BINARY"
+}
+# I must have 3 parameters ($0 doesn't count)
+if [ "$#" -lt 3 ]; then
+    echo "Not enough parameters specified."
+    usage
+    exit 1
+fi
 infile="$1"
 outdir="$2"
 lc3as="$3"

@@ -37,6 +37,13 @@ exec @@WISH@@ "$0" -- "$@"
 #
 ###############################################################################
 
+# Find the dirname of lc3sim-tk, it should contain lc3sim
+if {[string length "$argv0"] > 9} {
+    set rundir [string range "$argv0" 0 end-10]
+    # Prepend rundir to PATH
+    set env(PATH) [string cat "$rundir" $tcl_platform(pathSeparator) "$env(PATH)"]
+}
+
 set path(lc3sim) @@LC3_SIM@@
 
 # If an error occurs, exit without showing the window.
