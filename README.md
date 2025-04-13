@@ -26,9 +26,12 @@ The following are recommended:
  - The `xxd` program (used to include data into an executable, but a fallback is included).
 
 This software is built through the Meson build system. Accordingly, it follows 3 simple steps to build (once dependencies are set up):
+
+```sh
 	meson setup builddir
 	meson compile -C builddir
 	sudo meson install -C builddir
+```
 
 You can specify configuration options to Meson (such as install location), if desired. To get optimized executables, specify the `--buildtype=release` option to the `meson setup` command (or `--buildtype=debugoptimized` if you still want debugging symbols). Where I stated "builddir", you can enter any name of a directory you want it to build in.
 
