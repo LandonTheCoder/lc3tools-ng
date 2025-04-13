@@ -1,4 +1,4 @@
-project('lc3tools', 'c', license: 'GPL-2.0-only')
+project('lc3tools-ng', 'c', version: '13.0', license: 'GPL-2.0-only')
 
 cc = meson.get_compiler('c')
 
@@ -9,9 +9,11 @@ wish = find_program('wish', '/usr/bin/wish', '/sw/bin/wish', required: true)
 xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', required: true)
 
 ncurses = dependency('ncurses')
-readline = dependency('readline')
+readline = dependency('readline', required: false)
 # Indicates to build with readline support
-add_project_arguments('-DUSE_READLINE=1', language: 'c')
+if readline.found()
+    add_project_arguments('-DUSE_READLINE=1', language: 'c')
+endif
 
 # Test for needed functions
 if not cc.has_function('fmemopen')

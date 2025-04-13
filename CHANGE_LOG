@@ -1,3 +1,14 @@
+13 April 2025 (version 13.0)
+	Start writing a new build system more suitable for modern systems.
+		This ports the build system to Meson. The old system didn't
+		handle unexpected configurations that well. For example,
+		building with Clang instead of GCC, or non-static readline.
+	Remove runtime dependencies on the build directory. This makes the
+		software build in the LC-3 firmware into the simulator binary
+		instead of loading it from a fixed location. This also makes
+		lc3sim-tk locate the lc3sim instead of depending on a fixed
+		location for it.
+
 1 October 2008 (version 0.12)
 	fixed lc3convert issues with unterminated (Windows-style) last 
 		line in input file (both binary and hex); added multiple 
