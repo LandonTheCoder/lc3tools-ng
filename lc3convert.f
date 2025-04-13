@@ -1,4 +1,4 @@
-/*									tab:8
+/* tab:8
  *
  * lc3convert.f - LC-3 binary and hexadecimal file conversion tool
  *
@@ -83,11 +83,11 @@ ENDLINE  {SPACE}*{COMMENT}?\r?\n\r?
 <ls_binary>{BINARY} {
     if (++bin_count == 17) {
         fprintf (stderr, "%3d: line contains more than 16 digits\n", line_num);
-	num_errors++;
+        num_errors++;
     } else {
         binary_value <<= 1;
-	if (*yytext == '1')
-	    binary_value++;
+        if (*yytext == '1')
+            binary_value++;
     }
 }
 <ls_binary>{ENDLINE} {end_current_bin_line ();}
@@ -123,47 +123,47 @@ main (int argc, char** argv)
     char* fname;
 
     if (argc == 3) {
-	if (strcmp (argv[1], "-b2") == 0)
-	    parse_hex = 0;
-	else if (strcmp (argv[1], "-b16") == 0)
-	    parse_hex = 1;
-	else
-	    parse_error = 1;
+        if (strcmp (argv[1], "-b2") == 0)
+            parse_hex = 0;
+        else if (strcmp (argv[1], "-b16") == 0)
+            parse_hex = 1;
+        else
+            parse_error = 1;
     } else
-	parse_hex = 0;
+        parse_hex = 0;
 
     if (parse_error || argc < 2 || argc > 3) {
         fprintf (stderr, "usage: %s [-b2] <BIN filename>\n", argv[0]);
         fprintf (stderr, "       %s -b16 <HEX filename>\n", argv[0]);
-	return 1;
+        return 1;
     }
 
     /* Make our own copy of the filename. */
     len = strlen (argv[argc - 1]);
     if ((fname = malloc (len + 5)) == NULL) {
         perror ("malloc");
-	return 3;
+        return 3;
     }
     strcpy (fname, argv[argc - 1]);
 
     /* Check for .bin or .hex extension; if not found, add it. */
     use_ext = (parse_hex ? ".hex" : ".bin");
     if ((ext = strrchr (fname, '.')) == NULL || strcmp (ext, use_ext) != 0) {
-	ext = fname + len;
+        ext = fname + len;
         strcpy (ext, use_ext);
     }
 
     /* Open input file. */
     if ((lc3convertin = fopen (fname, "r")) == NULL) {
         fprintf (stderr, "Could not open %s for reading.\n", fname);
-	return 2;
+        return 2;
     }
 
     /* Open output files. */
     strcpy (ext, ".obj");
     if ((objout = fopen (fname, "w")) == NULL) {
         fprintf (stderr, "Could not open %s for writing.\n", fname);
-	return 2;
+        return 2;
     }
 
     line_num = 0;
@@ -172,7 +172,7 @@ main (int argc, char** argv)
     yylex ();
     printf ("%d errors found.\n", num_errors);
     if (num_errors > 0)
-    	return 1;
+        return 1;
 
     fclose (objout);
 
@@ -192,7 +192,7 @@ static void
 bad_line ()
 {
     fprintf (stderr, "%3d: contains unrecognizable characters\n",
-	     line_num);
+             line_num);
     num_errors++;
     new_inst_line ();
 }
@@ -204,17 +204,17 @@ read_val (const char* s, int* vptr, int bits)
     long v;
 
     if (*s == 'x' || *s == 'X')
-	s++;
+        s++;
     v = strtol (s, &trash, 16);
     if (0x10000 > v && 0x8000 <= v)
         v |= -65536L;   /* handles 64-bit longs properly */
     if (v < -(1L << (bits - 1)) || v >= (1L << bits)) {
-	fprintf (stderr, "%3d: constant outside of allowed range\n", line_num);
-	num_errors++;
-	return -1;
+        fprintf (stderr, "%3d: constant outside of allowed range\n", line_num);
+        num_errors++;
+        return -1;
     }
     if ((v & (1UL << (bits - 1))) != 0)
-	v |= ~((1UL << bits) - 1);
+        v |= ~((1UL << bits) - 1);
     *vptr = v;
     return 0;
 }
@@ -243,13 +243,13 @@ generate_hex_instruction (const char* val_str)
     int value;
 
     if (0 == hex_count) {
-	if (0 == read_val (val_str, &value, 16)) {
-	    write_value (value);
-	}
-	hex_count = 1;
+        if (0 == read_val (val_str, &value, 16)) {
+            write_value (value);
+        }
+        hex_count = 1;
     } else {
         fprintf (stderr, "%3d: line contains multiple hex values\n", line_num);
-	num_errors++;
+        num_errors++;
     }
 }
 
@@ -258,14 +258,14 @@ end_current_bin_line ()
 {
     if (bin_count == 0) { 
         /* a blank line */
-	new_inst_line ();
+        new_inst_line ();
     } else {
-	if (bin_count < 16) {
-	    fprintf (stderr, "%3d: line contains only %d digits\n", line_num,
-		     bin_count);
-	    num_errors++;
-	}
-	generate_bin_instruction (binary_value);
+        if (bin_count < 16) {
+            fprintf (stderr, "%3d: line contains only %d digits\n", line_num,
+                     bin_count);
+            num_errors++;
+        }
+        generate_bin_instruction (binary_value);
     }
 }
 

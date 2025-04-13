@@ -1,4 +1,4 @@
-/*									tab:8
+/* tab:8
  *
  * symbol.c - symbol table functions for the LC-3 assembler and simulator
  *
@@ -49,7 +49,7 @@ symbol_hash (const char* symbol)
     int h = 1;
 
     while (*symbol != 0)
-	h = (h * tolower (*symbol++)) % SYMBOL_HASH;
+        h = (h * tolower (*symbol++)) % SYMBOL_HASH;
 
     return h;
 }
@@ -63,8 +63,8 @@ find_symbol (const char* symbol, int* hptr)
     if (hptr != NULL)
         *hptr = h;
     for (sym = lc3_sym_hash[h]; sym != NULL; sym = sym->next_with_hash)
-    	if (strcasecmp (symbol, sym->name) == 0)
-	    return sym;
+        if (strcasecmp (symbol, sym->name) == 0)
+            return sym;
     return NULL;
 }
 
@@ -75,15 +75,15 @@ add_symbol (const char* symbol, int addr, int dup_ok)
     symbol_t* sym;
 
     if ((sym = find_symbol (symbol, &h)) == NULL) {
-	sym = (symbol_t*)malloc (sizeof (symbol_t)); 
-	sym->name = strdup (symbol);
-	sym->next_with_hash = lc3_sym_hash[h];
-	lc3_sym_hash[h] = sym;
+        sym = (symbol_t*)malloc (sizeof (symbol_t));
+        sym->name = strdup (symbol);
+        sym->next_with_hash = lc3_sym_hash[h];
+        lc3_sym_hash[h] = sym;
 #ifdef MAP_LOCATION_TO_SYMBOL
-	sym->next_at_loc = lc3_sym_names[addr];
-	lc3_sym_names[addr] = sym;
+        sym->next_at_loc = lc3_sym_names[addr];
+        lc3_sym_names[addr] = sym;
 #endif
-    } else if (!dup_ok) 
+    } else if (!dup_ok)
         return -1;
     sym->addr = addr;
     return 0;
@@ -100,12 +100,12 @@ remove_symbol_at_addr (int addr)
 
     while ((s = lc3_sym_names[addr]) != NULL) {
         h = symbol_hash (s->name);
-	for (find = &lc3_sym_hash[h]; *find != s; 
-	     find = &(*find)->next_with_hash);
+        for (find = &lc3_sym_hash[h]; *find != s;
+             find = &(*find)->next_with_hash);
         *find = s->next_with_hash;
-	lc3_sym_names[addr] = s->next_at_loc;
-	free (s->name);
-	free (s);
+        lc3_sym_names[addr] = s->next_at_loc;
+        free (s->name);
+        free (s);
     }
 }
 #endif

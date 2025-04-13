@@ -1,4 +1,4 @@
-/*									tab:8
+/* tab:8
  *
  * symbol.h - symbol table interface for the LC-3 assembler and simulator
  *

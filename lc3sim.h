@@ -1,4 +1,4 @@
-/*									tab:8
+/* tab:8
  *
  * lc3sim.h - the main header file for the LC-3 simulator
  *
@@ -102,9 +102,9 @@ enum inst_flag_t {
 
 typedef enum reg_num_t reg_num_t;
 enum reg_num_t {
-	R_R0 = 0, R_R1, R_R2, R_R3, R_R4, R_R5, R_R6, R_R7,
-	R_PC, R_IR, R_PSR,
-	NUM_REGS
+    R_R0 = 0, R_R1, R_R2, R_R3, R_R4, R_R5, R_R6, R_R7,
+    R_PC, R_IR, R_PSR,
+    NUM_REGS
 };
 
 
