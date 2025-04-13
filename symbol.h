@@ -3,6 +3,7 @@
  * symbol.h - symbol table interface for the LC-3 assembler and simulator
  *
  * "Copyright (c) 2003 by Steven S. Lumetta."
+ * Copyright (c) 2025 by LandonTheCoder.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written 

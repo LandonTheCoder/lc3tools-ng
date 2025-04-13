@@ -3,6 +3,7 @@
  * lc3convert.f - LC-3 binary and hexadecimal file conversion tool
  *
  * "Copyright (c) 2003 by Steven S. Lumetta."
+ * Copyright (c) 2025 by LandonTheCoder.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written 
