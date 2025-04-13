@@ -6,7 +6,17 @@ flex = find_program('flex', '/usr/bin/flex', required: true)
 sed = find_program('sed', '/usr/bin/sed', required: true)
 wish = find_program('wish', '/usr/bin/wish', '/sw/bin/wish', required: true)
 # Needed to generate OS-inclusion headers (to include it in the binary)
-xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', required: true)
+xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', required: false)
+if not xxd.found()
+    message('Building header generator instead of using xxd')
+    # Fallback for `xxd -i`
+    header_gen = executable('generate-header',
+                            'scripts/generate-header.c',
+                            install: false)
+else
+    header_gen = 'scripts/generate-header-for-binary.sh'
+endif
+
 
 ncurses = dependency('ncurses')
 readline = dependency('readline', required: false)
@@ -57,12 +67,12 @@ lc3os_sym = lc3os[1]
 lc3os_obj_h = custom_target('lc3os_obj_h',
                             input: lc3os_obj,
                             output: 'lc3os-obj.h',
-                            command: ['scripts/generate-header-for-binary.sh', '@INPUT@', '@OUTPUT@'])
+                            command: [header_gen, '@INPUT@', '@OUTPUT@'])
 
 lc3os_sym_h = custom_target('lc3os_sym_h',
                             input: lc3os_sym,
                             output: 'lc3os-sym.h',
-                            command: ['scripts/generate-header-for-binary.sh', '@INPUT@', '@OUTPUT@'])
+                            command: [header_gen, '@INPUT@', '@OUTPUT@'])
 
 lc3sim = executable('lc3sim', 'lc3sim.c', 'symbol.c', lc3os_obj_h, lc3os_sym_h,
                     c_args: ['-DLC3SIM_INCBIN=1', '-DMAP_LOCATION_TO_SYMBOL'],
