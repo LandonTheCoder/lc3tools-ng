@@ -502,8 +502,8 @@ write_value (int val)
 static char*
 sym_name (const char* name)
 {
-    unsigned char* local = strdup (name);
-    unsigned char* cut;
+    char* local = strdup (name);
+    char* cut;
 
     /* Not fast, but no limit on label length...who cares? */
     for (cut = local; *cut != 0 && !isspace (*cut) && *cut != ':'; cut++);
@@ -515,7 +515,7 @@ sym_name (const char* name)
 static int
 find_label (const char* optarg, int bits)
 {
-    unsigned char* local;
+    char* local;
     symbol_t* label;
     int limit, value;
 
@@ -552,10 +552,10 @@ static void
 generate_instruction (operands_t operands, const char* opstr)
 {
     int val, r1, r2, r3;
-    const unsigned char* o1;
-    const unsigned char* o2;
-    const unsigned char* o3;
-    const unsigned char* str;
+    const char* o1;
+    const char* o2;
+    const char* o3;
+    const char* str;
 
     if ((op_format_ok[inst.op] & (1UL << operands)) == 0) {
         bad_operands ();
@@ -769,7 +769,7 @@ parse_ccode (const char* ccstr)
 static void
 found_label (const char* lname) 
 {
-    unsigned char* local = sym_name (lname);
+    char* local = sym_name (lname);
 
     if (pass == 1) {
         if (saw_orig == 0) {

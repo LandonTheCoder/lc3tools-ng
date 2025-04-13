@@ -8,6 +8,10 @@
 		instead of loading it from a fixed location. This also makes
 		lc3sim-tk locate the lc3sim instead of depending on a fixed
 		location for it.
+	Fix most compiler warnings. There were a bunch of warnings which were
+		mostly related to sign mismatch (between "char *" and "unsigned
+		char *"). Now there are only 2, about unused functions in lc3as
+		and lc3convert.
 
 1 October 2008 (version 0.12)
 	fixed lc3convert issues with unterminated (Windows-style) last 

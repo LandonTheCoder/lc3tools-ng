@@ -1,0 +1,2 @@
+option('readline', type: 'feature', description: 'Enable support for the readline library')
+option('xxd', type: 'feature', description: 'Use xxd to generate headers for including the LC-3 operating system into the simulator (uses internal fallback if disabled)')

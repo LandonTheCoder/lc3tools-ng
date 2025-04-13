@@ -3,10 +3,11 @@ project('lc3tools-ng', 'c', version: '13.0', license: 'GPL-2.0-only')
 cc = meson.get_compiler('c')
 
 flex = find_program('flex', '/usr/bin/flex', required: true)
-sed = find_program('sed', '/usr/bin/sed', required: true)
+sed = find_program('sed', '/usr/bin/sed', '/bin/sed', required: true)
 wish = find_program('wish', '/usr/bin/wish', '/sw/bin/wish', required: true)
 # Needed to generate OS-inclusion headers (to include it in the binary)
-xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', required: false)
+xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', '/usr/local/bin/xxd',
+                   required: get_option('xxd'))
 if not xxd.found()
     message('Building header generator instead of using xxd')
     # Fallback for `xxd -i`
@@ -17,9 +18,7 @@ else
     header_gen = 'scripts/generate-header-for-binary.sh'
 endif
 
-
-ncurses = dependency('ncurses')
-readline = dependency('readline', required: false)
+readline = dependency('readline', required: get_option('readline'))
 # Indicates to build with readline support
 if readline.found()
     add_project_arguments('-DUSE_READLINE=1', language: 'c')
