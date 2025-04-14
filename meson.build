@@ -16,9 +16,7 @@ if readline.found()
 endif
 
 # Test for needed functions
-if not cc.has_function('fmemopen')
-    error('fmemopen is required')
-endif
+# None right now?
 
 # This must be done after add_project_arguments() call.
 if not xxd.found()

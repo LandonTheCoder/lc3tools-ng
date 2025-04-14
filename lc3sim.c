@@ -649,22 +649,21 @@ read_sym_file (const char* filename)
 static int
 read_obj_mem (const unsigned char* in_mem, size_t memsz, int* startp, int* endp)
 {
-    FILE* f;
     int start, addr;
     unsigned char buf[2];
 
-    if ((f = fmemopen ((void *)in_mem, memsz, "r")) == NULL)
-        return -1;
-    if (fread (buf, 2, 1, f) != 1) {
-        fclose (f);
-        return -1;
-    }
+    buf[0] = in_mem[0];
+    buf[1] = in_mem[1];
+
     addr = start = (buf[0] << 8) | buf[1];
-    while (fread (buf, 2, 1, f) == 1) {
+    // First 2 bytes are starting address
+    // Index 2 is first valid instruction
+    for (int index = 2; index < memsz; index += 2) {
+        buf[0] = in_mem[index];
+        buf[1] = in_mem[index + 1];
         write_memory (addr, (buf[0] << 8) | buf[1]);
         addr = (addr + 1) & 0xFFFF;
     }
-    fclose (f);
     squash_symbols (start, addr);
     *startp = start;
     *endp = addr;
@@ -672,18 +671,63 @@ read_obj_mem (const unsigned char* in_mem, size_t memsz, int* startp, int* endp)
     return 0;
 }
 
+// Note: read_size is same as strlen() result.
+static char * lc3s_getline(char *outbuf,
+                           int outsize,
+                           const char *inbuf,
+                           int insize,
+                           int *read_size) {
+    // Should act like fgets() but on a byte buffer
+    // Stores up to size - 1 bytes (and '\0'), but upon a newline, it stores
+    // the newline, stops, and stores a '\0' byte after it.
+    int index = 0;
+    *read_size = 0;
+    if (outsize <= 1) {
+        // Invalid read
+        return NULL;
+    }
+    if (insize < 1) {
+        return NULL;
+    }
+
+    int size;
+    if (outsize > insize + 1) {
+        size = insize + 1;
+    } else {
+        size = outsize;
+    }
+
+    // The last byte is reserved for '\0' byte
+    for (index = 0; index < size - 1; index++) {
+        // Copy byte
+        outbuf[index] = inbuf[index];
+        if (inbuf[index] == '\n') {
+            // Stop reading
+            break;
+        }
+    }
+    // Correct it to index of next valid byte
+    index++;
+    // Now add '\0' byte
+    outbuf[index] = '\0';
+    *read_size = index;
+    return outbuf;
+}
+
 static int
 read_sym_mem (const unsigned char* in_mem, size_t memsz)
 {
-    FILE* f;
     int adding = 0;
     char buf[100];
     char sym[81];
     int addr;
+    int read_size, index = 0;
 
-    if ((f = fmemopen ((void *)in_mem, memsz, "r")) == NULL)
-        return -1;
-    while (fgets (buf, 100, f) != NULL) {
+    while (lc3s_getline(buf, 100,
+                        (const char *)(in_mem + index),
+                        memsz - index, &read_size) != NULL) {
+        index += read_size;
+        read_size = 0;
         if (!adding) {
             if (sscanf (buf, "%*s%*s%80s", sym) == 1 &&
                 strcmp (sym, "------------") == 0)
@@ -694,7 +738,6 @@ read_sym_mem (const unsigned char* in_mem, size_t memsz)
             break;
         add_symbol (sym, addr, 1);
     }
-    fclose (f);
     return 0;
 }
 
