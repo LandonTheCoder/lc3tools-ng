@@ -16,7 +16,9 @@ if readline.found()
 endif
 
 # Test for needed functions
-# None right now?
+# This header is the sole thing keeping it from building on native Windows.
+cc.check_header('sys/poll.h', required: true)
+
 
 # This must be done after add_project_arguments() call.
 if not xxd.found()
