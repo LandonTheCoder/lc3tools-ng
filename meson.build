@@ -8,15 +8,6 @@ wish = find_program('wish', '/usr/bin/wish', '/sw/bin/wish', required: true)
 # Needed to generate OS-inclusion headers (to include it in the binary)
 xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', '/usr/local/bin/xxd',
                    required: get_option('xxd'))
-if not xxd.found()
-    message('Building header generator instead of using xxd')
-    # Fallback for `xxd -i`
-    header_gen = executable('generate-header',
-                            'scripts/generate-header.c',
-                            install: false)
-else
-    header_gen = 'scripts/generate-header-for-binary.sh'
-endif
 
 readline = dependency('readline', required: get_option('readline'))
 # Indicates to build with readline support
@@ -27,6 +18,17 @@ endif
 # Test for needed functions
 if not cc.has_function('fmemopen')
     error('fmemopen is required')
+endif
+
+# This must be done after add_project_arguments() call.
+if not xxd.found()
+    message('Building header generator instead of using xxd')
+    # Fallback for `xxd -i`
+    header_gen = executable('generate-header',
+                            'scripts/generate-header.c',
+                            install: false)
+else
+    header_gen = 'scripts/generate-header-for-binary.sh'
 endif
 
 env = environment()
