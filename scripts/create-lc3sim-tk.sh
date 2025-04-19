@@ -18,8 +18,8 @@ sed \
   -e 's/@@CODE_FONT@@/{{Lucida Console} 11 bold}/g' \
   -e 's/@@BUTTON_FONT@@/{{Lucida Console} 10 normal}/g' \
   -e 's/@@CONSOLE_FONT@@/{{Lucida Console} 10 bold}/g' \
-  -e "s/@@WISH@@/${WISH:-wish}/g" \
-  -e 's/@@LC3_SIM@@/"lc3sim"/g' \
+  -e "s|@@WISH@@|${WISH:-wish}|g" \
+  -e 's|@@LC3_SIM@@|"lc3sim"|g' \
   "$infile" > "$outfile"
 
 # Fix permissions on the output file
