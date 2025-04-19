@@ -31,9 +31,17 @@ else
     header_gen = 'scripts/generate-header-for-binary.sh'
 endif
 
+# Path to wish may optionally be hardcoded
+if get_option('hardcode_wish_path') == true
+    message('Hardcoding wish path')
+    wish_sub=wish.full_path()
+else
+    wish_sub='wish'
+endif
+
 env = environment()
 # This should allow running built programs
-env.append('PATH', meson.project_build_root())
+env.append('WISH', wish_sub)
 
 # Build lc3as
 lc3_lex = custom_target('lc3_lex',
@@ -88,5 +96,6 @@ lc3sim_tk = custom_target('lc3sim_tk',
                           install_tag: 'runtime',
                           install_dir: get_option('bindir'),
                           install_mode: 'rwxr-xr-x',
+                          env: env,
                           command: ['scripts/create-lc3sim-tk.sh',
                                     '@INPUT@', '@OUTPUT@'])
