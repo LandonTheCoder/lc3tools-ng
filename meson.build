@@ -35,6 +35,7 @@ endif
 if get_option('hardcode_wish_path') == true
     message('Hardcoding wish path')
     wish_sub=wish.full_path()
+    message(wish_sub)
 else
     wish_sub='wish'
 endif

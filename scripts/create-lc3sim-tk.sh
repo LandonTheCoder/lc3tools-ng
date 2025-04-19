@@ -12,16 +12,13 @@ fi
 infile="$1"
 outfile="$2"
 
-WISHPATH="${WISH:~wish}"
-echo "$WISHPATH"
-echo "$WISH"
 
 # Based on the makefile
 sed \
   -e 's/@@CODE_FONT@@/{{Lucida Console} 11 bold}/g' \
   -e 's/@@BUTTON_FONT@@/{{Lucida Console} 10 normal}/g' \
   -e 's/@@CONSOLE_FONT@@/{{Lucida Console} 10 bold}/g' \
-  -e "s/@@WISH@@/${WISH:~wish}/g" \
+  -e "s/@@WISH@@/${WISH:-wish}/g" \
   -e 's/@@LC3_SIM@@/"lc3sim"/g' \
   "$infile" > "$outfile"
 
