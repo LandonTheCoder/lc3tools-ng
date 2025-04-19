@@ -41,7 +41,7 @@ endif
 
 env = environment()
 # This should allow running built programs
-env.append('WISH', wish_sub)
+env.set('WISH', wish_sub)
 
 # Build lc3as
 lc3_lex = custom_target('lc3_lex',

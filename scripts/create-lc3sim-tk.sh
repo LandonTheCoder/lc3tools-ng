@@ -12,6 +12,10 @@ fi
 infile="$1"
 outfile="$2"
 
+WISHPATH="${WISH:~wish}"
+echo "$WISHPATH"
+echo "$WISH"
+
 # Based on the makefile
 sed \
   -e 's/@@CODE_FONT@@/{{Lucida Console} 11 bold}/g' \
