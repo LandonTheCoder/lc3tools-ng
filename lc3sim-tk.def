@@ -796,7 +796,9 @@ bind .console <KeyPress> {
 # could be annoying...
 #bind . <KeyPress-Escape> {set halt 1}
 
-bind . <Destroy> {exit}
+# The "Quit" button works correctly on macOS, and invokes `set halt 1`.
+# Maybe setting it here will fix the dreaded hang-on-close problem?
+bind . <Destroy> {set halt 1}
 bind .console <Destroy> {set halt 1}
 
 set sim [open "| $path(lc3sim) -gui $argv" r+]
@@ -851,7 +853,8 @@ update
 fileevent $sim readable {}
 puts $sim quit
 # avoid self-deadlock issues with some versions of WISH
-bind . <Destroy> {}
-bind .console <Destroy> {}
+# This causes other bugs, disabled for now
+#bind . <Destroy> {}
+#bind .console <Destroy> {}
 exit
 
