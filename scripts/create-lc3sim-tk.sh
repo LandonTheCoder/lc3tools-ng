@@ -14,10 +14,12 @@ outfile="$2"
 
 
 # Based on the makefile
+# There are default values set if variable is not set, excuse the escaped
+# braces in the font setup.
 sed \
-  -e 's/@@CODE_FONT@@/{{Lucida Console} 11 bold}/g' \
-  -e 's/@@BUTTON_FONT@@/{{Lucida Console} 10 normal}/g' \
-  -e 's/@@CONSOLE_FONT@@/{{Lucida Console} 10 bold}/g' \
+  -e "s/@@CODE_FONT@@/${CODE_FONT:-\{\{Lucida Console\} 11 bold\}}/g" \
+  -e "s/@@BUTTON_FONT@@/${BUTTON_FONT:-\{\{Lucida Console\} 10 normal\}}/g" \
+  -e "s/@@CONSOLE_FONT@@/${CONSOLE_FONT:-\{\{Lucida Console\} 10 bold\}}/g" \
   -e "s|@@WISH@@|${WISH:-wish}|g" \
   -e 's|@@LC3_SIM@@|"lc3sim"|g' \
   "$infile" > "$outfile"

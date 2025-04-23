@@ -12,6 +12,13 @@
 		mostly related to sign mismatch (between "char *" and "unsigned
 		char *"). Now there are only 2, about unused functions in lc3as
 		and lc3convert.
+	Port to macOS. This adds a Homebrew build file in order to build this
+		against modern macOS. I have tested this against a real Mac
+		(Intel Mac running macOS 11), and it works but lc3sim-tk is
+		buggy. Specifically, it is slow to load and the close buttons
+		on the windows are glitchy. The Homebrew build file is
+		"lc3tools-ng.rb". It can be installed by
+		`brew install /path/to/lc3tools-ng.rb`.
 
 1 October 2008 (version 0.12)
 	fixed lc3convert issues with unterminated (Windows-style) last 

@@ -44,6 +44,15 @@ env = environment()
 # This should allow running built programs
 env.set('WISH', wish_sub)
 
+# Some OSes were assigned custom fonts.
+if host_machine.system() == 'darwin'
+    # In the configure script, macOS sometimes gets custom fonts.
+    # This may not apply to all builds of Tk on macOS.
+    env.set('CODE_FONT', '{LucidaTypewriter 11 normal}')
+    env.set('BUTTON_FONT', '{Fixed 10 normal}')
+    env.set('CONSOLE_FONT', '{Fixed 10 normal}')
+endif
+
 # Build lc3as
 lc3_lex = custom_target('lc3_lex',
                         input: 'lc3.f',
