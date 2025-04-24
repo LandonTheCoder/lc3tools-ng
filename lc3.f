@@ -551,7 +551,7 @@ bad_label:
 static void 
 generate_instruction (operands_t operands, const char* opstr)
 {
-    int val, r1, r2, r3;
+    int val, r1 = 0, r2 = 0, r3 = 0;
     const char* o1;
     const char* o2;
     const char* o3;
