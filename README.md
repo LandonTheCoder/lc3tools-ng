@@ -43,9 +43,21 @@ It also includes the LC-3 operating system into the simulator at build time, ins
 
 I also fixed the vast majority of the compiler warnings.
 
+Behavioral changes: `lc3sim-tk` would wait 250ms to display output from the LC-3 if a newline wasn't present, which could cause noticeable input lag. Now it only waits 5ms. It also has optional support for an idle mode when LC-3 is waiting for input (which can be disabled with the "idle\_sleep" feature).
+
 ## To-Do ##
-I have only tested this on Linux systems. I would like to test using this on Macs, and maybe within MSYS2 on Windows systems (for completeness).
 
-I need to create a .desktop file for `lc3sim-tk` so it shows up in application launchers, although this would need an icon.
+### Bug Fixes ###
+ - Fix the macOS "hangs when close button is clicked" bug
+ - Find more macOS bugs
 
-I need to work on the build process for Mac systems, making sure it works. Additionally, figure out how to make it be available as an installable application (low priority), instead of requiring self-build.
+### Porting ###
+ - Test on Macs (at least more so)
+ - Make it run under MSYS2 on Windows systems
+   - Stretch goal: make it run under native Windows. This requires replacing usage of `poll()` in lc3sim.
+
+### Enhancements ###
+ - Create a .desktop file for `lc3sim-tk`
+   - Create an icon for lc3sim-tk
+ - Make it an installable application on macOS (it currently requires building either manually or with Homebrew).
+ - Maybe more refactoring to how `lc3sim` integrates with the GUI?

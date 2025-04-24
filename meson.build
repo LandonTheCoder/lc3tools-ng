@@ -15,10 +15,16 @@ if readline.found()
     add_project_arguments('-DUSE_READLINE=1', language: 'c')
 endif
 
+# Optional features for lc3sim
+lc3sim_options = []
+
 # Test for needed functions
 # This header is the sole thing keeping it from building on native Windows.
 cc.check_header('sys/poll.h', required: true)
 
+if cc.has_header_symbol('time.h', 'nanosleep', required: get_option('idle_sleep'))
+    lc3sim_options += '-DLC3SIM_IDLE'
+endif
 
 # This must be done after add_project_arguments() call.
 if not xxd.found()
@@ -94,7 +100,8 @@ lc3os_sym_h = custom_target('lc3os_sym_h',
                             command: [header_gen, '@INPUT@', '@OUTPUT@'])
 
 lc3sim = executable('lc3sim', 'lc3sim.c', 'symbol.c', lc3os_obj_h, lc3os_sym_h,
-                    c_args: ['-DLC3SIM_INCBIN=1', '-DMAP_LOCATION_TO_SYMBOL'],
+                    c_args: ['-DLC3SIM_INCBIN=1',
+                             '-DMAP_LOCATION_TO_SYMBOL'] + lc3sim_options,
                     dependencies: [readline],
                     install: true)
 

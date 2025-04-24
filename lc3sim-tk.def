@@ -650,8 +650,10 @@ proc read_lc3 {} {
 
     if {[gets $lc3_console line] == -1} {
 	if {[fblocked $lc3_console]} {
-	    # wait 1/4 second and read without waiting for newline
-	    after 250 delayed_read_lc3
+	    # Wait 5ms and read without waiting for newline
+	    # This should be enough for input to be available while minimizing
+	    # visible delay.
+	    after 5 delayed_read_lc3
 	    return
 	}
 	lc3sim_died
@@ -661,6 +663,8 @@ proc read_lc3 {} {
 }
 
 proc read_sim {} {
+    # Called when lc3sim gives status updates.
+    # It prints to its standard output in a special format.
     global sim reg option bpoints mem fail_focus lc3_running
 
     if {[gets $sim line] == -1} {
@@ -762,6 +766,7 @@ proc read_sim {} {
 }
 
 proc open_lc3channel {sock ip_addr port} {
+    # We have to set up the console as connected to the socket.
     global lc3_listen lc3_console
 
     close $lc3_listen
@@ -770,6 +775,7 @@ proc open_lc3channel {sock ip_addr port} {
         error "contacted by bad IP address (not loopback)"
     }
     set lc3_console $sock
+    # Don't buffer it, so we can keep it in sync.
     fconfigure $lc3_console -blocking 0 -buffering none
     fileevent $lc3_console readable read_lc3
 }
@@ -788,6 +794,7 @@ pack .console.t_y -side right -fill y
 pack .console.t -expand t -fill both
 
 bind .console <KeyPress> {
+    # Send a keystroke to LC-3
     if {"%A" != ""} {
 	puts -nonewline $lc3_console %A
     }
@@ -801,14 +808,21 @@ bind .console <KeyPress> {
 bind . <Destroy> {set halt 1}
 bind .console <Destroy> {set halt 1}
 
+# Note:
+# The simulator recieves commands via pipe.
+# The LC-3 inputs and outputs over a TCP socket started by us.
+# Would it be possible to try a Unix socket (AF_UNIX) instead?
+
 set sim [open "| $path(lc3sim) -gui $argv" r+]
 fconfigure $sim -blocking 0 -buffering none
 
 while {![info exists lc3_listen]} {
     set port [expr {int (rand () * 1000 + 5000)}]
+    # This will set $lc3_console to the socket server.
     catch {set lc3_listen [socket -server open_lc3channel $port]}
 }
 
+# Tells lc3sim the correct port, so it can connect.
 puts $sim $port
 
 vwait lc3_listen

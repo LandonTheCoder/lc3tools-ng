@@ -192,11 +192,23 @@ static int flush_on_start = 1, keep_input_on_stop = 1;
 static int rand_device = 1, delay_mem_update = 1;
 static int script_uses_stdin = 1, script_depth = 0;
 
-
+/* I/O seen by the LC-3 */
 static FILE* lc3in;
 static FILE* lc3out;
+/* The command channel for the simulator */
 static FILE* sim_in;
 static char* (*lc3readline) (const char*) = simple_readline;
+
+/* This can be used for a busy-wait mitigation mechanism. */
+static unsigned int kbsr_waits = 0;
+#ifdef LC3SIM_IDLE
+// This data is used for sleeping when waiting for input.
+#include <time.h>
+#include <limits.h>
+static const struct timespec idle_sleep = {
+  .tv_nsec = 500
+};
+#endif
 
 static const char* const ccodes[8] = {
     "BAD_CC", "POSITIVE", "ZERO", "BAD_CC",
@@ -300,7 +312,7 @@ launch_gui_connection ()
     int fd;                   /* server socket file descriptor   */
     struct sockaddr_in addr;  /* server socket address           */
 
-    /* wait for the GUI to tell us the portfor the LC-3 console socket */
+    /* wait for the GUI to tell us the port for the LC-3 console socket */
     if (fscanf (sim_in, "%hd", &port) != 1)
         return -1;
 
@@ -312,18 +324,13 @@ launch_gui_connection ()
     if ((fd = socket (PF_INET, SOCK_STREAM, 0)) == -1)
         return -1;
 
-    /* bind the port to the loopback address with any port */
+    /* Set up parameters */
     bzero (&addr, sizeof (addr));
     addr.sin_family      = AF_INET;
     addr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
-    addr.sin_port        = 0;
-    if (bind (fd, (struct sockaddr*)&addr, sizeof (addr)) == -1) {
-        close (fd);
-        return -1;
-    }
-
-    /* now connect to the given port */
     addr.sin_port = htons (port);
+
+    /* Connect to the given port */
     if (connect (fd, (struct sockaddr*)&addr, 
                  sizeof (struct sockaddr_in)) == -1) {
         close (fd);
@@ -528,8 +535,25 @@ read_memory (int addr)
             if (!last_KBSR_read) {
                 p.fd = fileno (lc3in);
                 p.events = POLLIN;
-                if (poll (&p, 1, 0) == 1 && (p.revents & POLLIN) != 0)
+                /* Check if input is available */
+                if (poll (&p, 1, 0) == 1 && (p.revents & POLLIN) != 0) {
+                    /* Adds random delay if random-registers mode is enabled */
+                    kbsr_waits = 0;
                     last_KBSR_read = (!rand_device || (random () & 15) == 0);
+                } else {
+                    /* No input available */
+                    if (kbsr_waits < INT_MAX)
+                        // Saturate to reduce CPU usage
+                        kbsr_waits++;
+                    /* Perhaps put a sleep here to reduce CPU usage? */
+#ifdef LC3SIM_IDLE
+                    if (kbsr_waits > 250) {
+                        // We have checked enough for input that it likely
+                        // won't be coming soon.
+                        nanosleep(&idle_sleep, NULL);
+                    }
+#endif
+                }
             }
             return (last_KBSR_read ? 0x8000 : 0x0000);
         case 0xFE02: /* KBDR */
@@ -550,8 +574,12 @@ read_memory (int addr)
             last_KBSR_read = 0;
             return lc3_memory[0xFE02];
         case 0xFE04: /* DSR */
-            if (!last_DSR_read)
+            if (!last_DSR_read) {
+                /* Simulate hardware delay when random-registers mode is
+                 * enabled. (Otherwise, it is always ready.)
+                 */
                 last_DSR_read = (!rand_device || (random () & 15) == 0);
+            }
             return (last_DSR_read ? 0x8000 : 0x0000);
         case 0xFE06: /* DDR */
             return 0x0000;
@@ -575,7 +603,7 @@ write_memory (int addr, int value)
             fflush (lc3out);
             last_DSR_read = 0;
             return;
-        case 0xFFFE:
+        case 0xFFFE: /* MCR */
             if ((value & 0x8000) == 0)
                 should_halt = 1;
             return;
