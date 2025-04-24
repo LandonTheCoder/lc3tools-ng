@@ -13,6 +13,9 @@ readline = dependency('readline', required: get_option('readline'))
 # Indicates to build with readline support
 if readline.found()
     add_project_arguments('-DUSE_READLINE=1', language: 'c')
+    summary('readline', true, bool_yn: true)
+else
+    summary('readline', false, bool_yn: true)
 endif
 
 # Optional features for lc3sim
@@ -24,27 +27,31 @@ cc.check_header('sys/poll.h', required: true)
 
 if cc.has_header_symbol('time.h', 'nanosleep', required: get_option('idle_sleep'))
     lc3sim_options += '-DLC3SIM_IDLE'
+    summary('idle_sleep', true, bool_yn: true)
+else
+    summary('idle_sleep', false, bool_yn: true)
 endif
 
 # This must be done after add_project_arguments() call.
 if not xxd.found()
-    message('Building header generator instead of using xxd')
+    summary('xxd_header_gen', false, bool_yn: true)
     # Fallback for `xxd -i`
     header_gen = executable('generate-header',
                             'scripts/generate-header.c',
                             install: false)
 else
+    summary('xxd_header_gen', true, bool_yn: true)
     header_gen = 'scripts/generate-header-for-binary.sh'
 endif
 
 # Path to wish may optionally be hardcoded
 if get_option('hardcode_wish_path') == true
-    message('Hardcoding wish path')
     wish_sub=wish.full_path()
-    message(wish_sub)
 else
     wish_sub='wish'
 endif
+
+summary('wish_path', wish_sub)
 
 env = environment()
 # This should allow running built programs
