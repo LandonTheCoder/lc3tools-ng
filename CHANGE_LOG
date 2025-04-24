@@ -1,4 +1,4 @@
-13 April 2025 (version 13.0)
+24 April 2025 (version 13.0)
 	Start writing a new build system more suitable for modern systems.
 		This ports the build system to Meson. The old system didn't
 		handle unexpected configurations that well. For example,
@@ -19,6 +19,13 @@
 		on the windows are glitchy. The Homebrew build file is
 		"lc3tools-ng.rb". It can be installed by
 		`brew install /path/to/lc3tools-ng.rb`.
+	Add an optional idle mode. This adds a mode where lc3sim will idle when
+		the LC-3 is waiting for keyboard input (when `idle_sleep` is
+		enabled).
+	Fix the lag in `lc3sim-tk`. It was waiting a quarter-second to display
+		LC-3 output when a newline wasn't present, I changed it to 5ms
+		to fulfill the original purpose without causing user-visible
+		problems.
 
 1 October 2008 (version 0.12)
 	fixed lc3convert issues with unterminated (Windows-style) last 
