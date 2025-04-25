@@ -33,8 +33,7 @@
  *		Copyright notices and Gnu Public License marker added.
  */
 
-#ifndef LC3SIM_H
-#define LC3SIM_H
+#pragma once
 
 /* field access macros; "i" is an instruction */
 
@@ -111,7 +110,3 @@ enum reg_num_t {
 
 extern int read_memory (int addr);
 extern void write_memory (int addr, int value);
-
-
-#endif /* LC3SIM_H */
-

@@ -39,10 +39,14 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <strings.h>
+// Used for poll() on input to simulator and LC-3
 #include <sys/poll.h>
+// Used in run_until_stopped()
 #include <sys/termios.h>
 #include <sys/types.h>
+// Used for socket(), connect() in launch_gui_connection()
 #include <sys/socket.h>
+// Defines sockaddr_in?
 #include <netinet/in.h>
 #include <time.h>
 #include <unistd.h>
@@ -75,14 +79,15 @@
 #define BAD_ADDRESS       \
         "Addresses must be labels or values in the range x0000 to xFFFF."
 
-/* 
-   Types of breakpoints.  Currently only user breakpoints are
-   handled in this manner; the system breakpoint used for the
-   "next" command is specified by sys_bpt_addr.
-*/
+/*
+ * Types of breakpoints.  Currently only user breakpoints are
+ * handled in this manner; the system breakpoint used for the
+ * "next" command is specified by sys_bpt_addr.
+ */
 typedef enum bpt_type_t bpt_type_t;
 enum bpt_type_t {BPT_NONE, BPT_USER};
 
+// Internal function pre-declarations
 static int launch_gui_connection ();
 static char* simple_readline (const char* prompt);
 
@@ -91,8 +96,7 @@ static void print_register (int which);
 static void print_registers ();
 static void dump_delayed_mem_updates ();
 static void show_state_if_stop_visible ();
-static int read_obj_file (const char* filename, int* startp, 
-                          int* endp);
+static int read_obj_file (const char* filename, int* startp, int* endp);
 static int read_sym_file (const char* filename);
 static void squash_symbols (int addr_s, int addr_e);
 static int execute_instruction ();
@@ -107,8 +111,11 @@ static void set_breakpoint (int addr);
 static void warn_too_many_args ();
 static void no_args_allowed (const unsigned char* args);
 static int parse_address (const char* addr);
-static int parse_range (const unsigned char* cmd, int* startptr, int* endptr, 
-                        int last_end, int scale);
+static int parse_range (const unsigned char* cmd,
+                        int* startptr,
+                        int* endptr,
+                        int last_end,
+                        int scale);
 static void flush_console_input ();
 static void gui_stop_and_dump ();
 
@@ -143,13 +150,17 @@ typedef void (*command_func_t)(const unsigned char *);
 
 typedef struct command_t command_t;
 struct command_t {
-    char* command;  /* string for command                     */
-    int min_len;    /* minimum length for abbrevation--typically 1     */
+    // Command string
+    char* command;
+    // Shortest allowed abbreviation (usually 1)
+    int min_len;
+    // Command's implementing function
     command_func_t cmd_func;
-                    /* function implementing command                   */
-    cmd_flag_t flags; /* flags for command properties                  */
+    // Flags for command's properties
+    cmd_flag_t flags;
 };
 
+// Command definitions
 static const struct command_t command[] = {
     {"break",     1, (command_func_t) cmd_break,     CMD_FLAG_NONE      },
     {"continue",  1,                  cmd_continue,  CMD_FLAG_REPEATABLE},
@@ -172,6 +183,7 @@ static const struct command_t command[] = {
     {NULL,        0,                  NULL,          CMD_FLAG_NONE      }
 };
 
+// LC-3 state
 static int lc3_register[NUM_REGS];
 #define REG(i) lc3_register[(i)]
 static int lc3_memory[65536];
@@ -203,7 +215,6 @@ static char* (*lc3readline) (const char*) = simple_readline;
 static unsigned int kbsr_waits = 0;
 #ifdef LC3SIM_IDLE
 // This data is used for sleeping when waiting for input.
-#include <time.h>
 #include <limits.h>
 static const struct timespec idle_sleep = {
   .tv_nsec = 500
@@ -215,6 +226,7 @@ static const char* const ccodes[8] = {
     "NEGATIVE", "BAD_CC", "BAD_CC", "BAD_CC"
 };
 
+// Start implementation
 
 static int 
 execute_instruction ()
@@ -308,7 +320,7 @@ halt_lc3 (int sig)
 static int
 launch_gui_connection ()
 {
-    u_short port;
+    unsigned short port;
     int fd;                   /* server socket file descriptor   */
     struct sockaddr_in addr;  /* server socket address           */
 
@@ -1096,11 +1108,16 @@ run_until_stopped ()
         tty_fail = 1;
     else {
         tty_fail = 0;
+        // Store the old console state
         old_lflag = tio.c_lflag;
         old_min = tio.c_cc[VMIN];
         old_time = tio.c_cc[VTIME];
+        // Prepare console for LC-3's character-based mode
+        // Disable line-based reading and character echoing
         tio.c_lflag &= ~(ICANON | ECHO);
+        // Minimum read size is 1
         tio.c_cc[VMIN] = 1;
+        // Read timeout is 0
         tio.c_cc[VTIME] = 0;
         (void)tcsetattr (fileno (lc3in), TCSANOW, &tio);
     }
@@ -1108,17 +1125,18 @@ run_until_stopped ()
     while (!should_halt && execute_instruction ());
 
     if (!tty_fail) {
+        // Restore console state after LC-3 finishes
         tio.c_lflag = old_lflag;
         tio.c_cc[VMIN] = old_min;
         tio.c_cc[VTIME] = old_time;
         (void)tcsetattr (fileno (lc3in), TCSANOW, &tio);
-        /* 
+        /*
          * Discard any remaining input if requested.  This flush occurs
          * when the LC-3 stops, in which case any remaining input
          * to the console will be treated as simulator commands if it
          * is not discarded.
          *
-         * However, discarding can interfere with command sequences that 
+         * However, discarding can interfere with command sequences that
          * include moderately long execution periods.
          *
          * As with gdb, not discarding is the default, since typing in

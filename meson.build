@@ -22,8 +22,21 @@ endif
 lc3sim_options = []
 
 # Test for needed functions
-# This header is the sole thing keeping it from building on native Windows.
+# These keep it from running on Windows.
 cc.check_header('sys/poll.h', required: true)
+cc.has_header_symbol('sys/socket.h', 'socket', required: true)
+cc.has_header_symbol('sys/socket.h', 'connect', required: true)
+# Defines for IPv4 networking
+cc.check_header('netinet/in.h', required: true)
+# It requires these 3 functions from termios currently
+cc.has_header_symbol('sys/termios.h', 'tcgetattr', required: true)
+cc.has_header_symbol('sys/termios.h', 'tcsetattr', required: true)
+cc.has_header_symbol('sys/termios.h', 'tcflush', required: true)
+
+# Check for bzero(), srandom(), random()
+cc.has_header_symbol('strings.h', 'bzero', required: true)
+# random()/srandom() are easily replaced by rand()/srand(), though.
+cc.has_header_symbol('stdlib.h', 'srandom', required: true)
 
 if cc.has_header_symbol('time.h', 'nanosleep', required: get_option('idle_sleep'))
     lc3sim_options += '-DLC3SIM_IDLE'
