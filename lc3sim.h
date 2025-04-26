@@ -108,5 +108,5 @@ enum reg_num_t {
 };
 
 
-extern int read_memory (int addr);
-extern void write_memory (int addr, int value);
+extern int read_memory(int addr);
+extern void write_memory(int addr, int value);
