@@ -39,14 +39,12 @@
 
 #include "symbol.h"
 
-symbol_t* lc3_sym_hash[SYMBOL_HASH];
+symbol_t *lc3_sym_hash[SYMBOL_HASH];
 #ifdef MAP_LOCATION_TO_SYMBOL
-symbol_t* lc3_sym_names[65536];
+symbol_t *lc3_sym_names[65536];
 #endif
 
-int
-symbol_hash (const char* symbol)
-{
+int symbol_hash(const char *symbol) {
     int h = 1;
 
     while (*symbol != 0)
@@ -55,29 +53,25 @@ symbol_hash (const char* symbol)
     return h;
 }
 
-symbol_t*
-find_symbol (const char* symbol, int* hptr)
-{
-    int h = symbol_hash (symbol);
-    symbol_t* sym;
+symbol_t * find_symbol(const char *symbol, int *hptr) {
+    int h = symbol_hash(symbol);
+    symbol_t *sym;
 
     if (hptr != NULL)
         *hptr = h;
     for (sym = lc3_sym_hash[h]; sym != NULL; sym = sym->next_with_hash)
-        if (strcasecmp (symbol, sym->name) == 0)
+        if (strcasecmp(symbol, sym->name) == 0)
             return sym;
     return NULL;
 }
 
-int
-add_symbol (const char* symbol, int addr, int dup_ok)
-{
+int add_symbol(const char *symbol, int addr, int dup_ok) {
     int h;
-    symbol_t* sym;
+    symbol_t *sym;
 
-    if ((sym = find_symbol (symbol, &h)) == NULL) {
-        sym = (symbol_t*)malloc (sizeof (symbol_t));
-        sym->name = strdup (symbol);
+    if ((sym = find_symbol(symbol, &h)) == NULL) {
+        sym = (symbol_t*)malloc(sizeof(symbol_t));
+        sym->name = strdup(symbol);
         sym->next_with_hash = lc3_sym_hash[h];
         lc3_sym_hash[h] = sym;
 #ifdef MAP_LOCATION_TO_SYMBOL
@@ -92,21 +86,19 @@ add_symbol (const char* symbol, int addr, int dup_ok)
 
 
 #ifdef MAP_LOCATION_TO_SYMBOL
-void
-remove_symbol_at_addr (int addr)
-{
-    symbol_t* s;
-    symbol_t** find;
+void remove_symbol_at_addr(int addr) {
+    symbol_t *s;
+    symbol_t **find;
     int h;
 
     while ((s = lc3_sym_names[addr]) != NULL) {
-        h = symbol_hash (s->name);
+        h = symbol_hash(s->name);
         for (find = &lc3_sym_hash[h]; *find != s;
              find = &(*find)->next_with_hash);
         *find = s->next_with_hash;
         lc3_sym_names[addr] = s->next_at_loc;
-        free (s->name);
-        free (s);
+        free(s->name);
+        free(s);
     }
 }
 #endif

@@ -33,30 +33,26 @@
  *		Copyright notices and Gnu Public License marker added.
  */
 
-#ifndef SYMBOL_H
-#define SYMBOL_H
+#pragma once
 
 typedef struct symbol_t symbol_t;
 struct symbol_t {
-    char* name;
+    char *name;
     int addr;
-    symbol_t* next_with_hash;
+    symbol_t *next_with_hash;
 #ifdef MAP_LOCATION_TO_SYMBOL
-    symbol_t* next_at_loc;
+    symbol_t *next_at_loc;
 #endif
 };
 
 #define SYMBOL_HASH 997
 
-extern symbol_t* lc3_sym_names[65536];
-extern symbol_t* lc3_sym_hash[SYMBOL_HASH];
+extern symbol_t *lc3_sym_names[65536];
+extern symbol_t *lc3_sym_hash[SYMBOL_HASH];
 
-int symbol_hash (const char* symbol);
-int add_symbol (const char* symbol, int addr, int dup_ok);
-symbol_t* find_symbol (const char* symbol, int* hptr);
+int symbol_hash(const char *symbol);
+int add_symbol(const char *symbol, int addr, int dup_ok);
+symbol_t * find_symbol(const char *symbol, int *hptr);
 #ifdef MAP_LOCATION_TO_SYMBOL
-void remove_symbol_at_addr (int addr);
+void remove_symbol_at_addr(int addr);
 #endif
-
-#endif /* SYMBOL_H */
-
