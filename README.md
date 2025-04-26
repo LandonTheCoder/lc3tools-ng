@@ -28,9 +28,9 @@ The following are recommended:
 This software is built through the Meson build system. Accordingly, it follows 3 simple steps to build (once dependencies are set up):
 
 ```sh
-	meson setup builddir
-	meson compile -C builddir
-	sudo meson install -C builddir
+meson setup builddir
+meson compile -C builddir
+sudo meson install -C builddir
 ```
 
 You can specify configuration options to Meson (such as install location), if desired. To get optimized executables, specify the `--buildtype=release` option to the `meson setup` command (or `--buildtype=debugoptimized` if you still want debugging symbols). Where I stated "builddir", you can enter any name of a directory you want it to build in.
@@ -43,6 +43,8 @@ It also includes the LC-3 operating system into the simulator at build time, ins
 
 I also fixed the vast majority of the compiler warnings.
 
+The `lc3sim` code has been massively reorganized, and some variable and argument types have been changed. For example, most status variables are now booleans.
+
 Behavioral changes: `lc3sim-tk` would wait 250ms to display output from the LC-3 if a newline wasn't present, which could cause noticeable input lag. Now it only waits 5ms. It also has optional support for an idle mode when LC-3 is waiting for input (which can be disabled with the "idle\_sleep" feature).
 
 ## To-Do ##
@@ -53,11 +55,19 @@ Behavioral changes: `lc3sim-tk` would wait 250ms to display output from the LC-3
 
 ### Porting ###
  - Test on Macs (at least more so)
+ - Have better endian handling. It currently byteswaps unconditionally, which may break when run on big-endian systems. Make macros which convert to and from big endian.
  - Make it run under MSYS2 on Windows systems
-   - Stretch goal: make it run under native Windows. This requires replacing usage of `poll()` in lc3sim.
+   - Stretch goal: make it run under native Windows. This requires replacing usage of a few functions in `lc3sim`:
+     - `poll()` (checks simulator input in `simple\_readline()` and `execute\_instruction()`, and LC-3 input in `flush\_console\_input()` and `read\_memory()`)
+       - This is complicated to replace because it can `poll()` on console, pipe, and network socket, and Windows only has an implementation for 1 natively. I have to figure out how to emulate it, or change the code more substantially.
+     - `socket()` and `connect()` (used in `launch\_gui\_connection()`, support using Winsock APIs instead, see `sys/socket.h` and `netinet/in.h`)
+     - `struct termios`, `tcgetattr()`, `tcsetattr()` (used in `run\_until\_stopped()`, there should be a Windows console API for that?)
+     - Support alternatives for `srandom()` and `random()` (`srand()` and `rand()` can probably be aliased on Windows)
 
 ### Enhancements ###
  - Create a .desktop file for `lc3sim-tk`
    - Create an icon for lc3sim-tk
  - Make it an installable application on macOS (it currently requires building either manually or with Homebrew).
  - Maybe more refactoring to how `lc3sim` integrates with the GUI?
+ - Rework command-line argument handling in most programs. For example, support the `--help` option.
+ - Maybe rework code to store memory in 16-bit integers instead of default-sized integers? This would save memory, but have limited benefits otherwise (and require some narrowing casts).

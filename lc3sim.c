@@ -998,7 +998,7 @@ static void clear_all_breakpoints(void) {
      * this code needs to avoid clobbering non-user
      * breakpoints.
      */
-    bzero(lc3_breakpoints, sizeof(lc3_breakpoints));
+    memset(lc3_breakpoints, 0, sizeof(lc3_breakpoints));
 }
 
 // Print user-set breakpoints on console
@@ -1194,12 +1194,12 @@ static void init_machine(void) {
 
     in_init = true;
 
-    bzero(lc3_register, sizeof(lc3_register));
+    memset(lc3_register, 0, sizeof(lc3_register));
     REG(R_PSR) = (2L << 9); /* set to condition ZERO */
-    bzero(lc3_memory, sizeof(lc3_memory));
-    bzero(lc3_show_later, sizeof(lc3_show_later));
-    bzero(lc3_sym_names, sizeof(lc3_sym_names));
-    bzero(lc3_sym_hash, sizeof(lc3_sym_hash));
+    memset(lc3_memory, 0, sizeof(lc3_memory));
+    memset(lc3_show_later, 0, sizeof(lc3_show_later));
+    memset(lc3_sym_names, 0, sizeof(lc3_sym_names));
+    memset(lc3_sym_hash, 0, sizeof(lc3_sym_hash));
     clear_all_breakpoints();
 
 #ifdef LC3SIM_INCBIN
@@ -1286,7 +1286,7 @@ static int launch_gui_connection(void) {
         return -1;
 
     /* Set up parameters */
-    bzero(&addr, sizeof(addr));
+    memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = htons(port);

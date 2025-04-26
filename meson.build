@@ -33,8 +33,7 @@ cc.has_header_symbol('sys/termios.h', 'tcgetattr', required: true)
 cc.has_header_symbol('sys/termios.h', 'tcsetattr', required: true)
 cc.has_header_symbol('sys/termios.h', 'tcflush', required: true)
 
-# Check for bzero(), srandom(), random()
-cc.has_header_symbol('strings.h', 'bzero', required: true)
+# Check for srandom(), random()
 # random()/srandom() are easily replaced by rand()/srand(), though.
 cc.has_header_symbol('stdlib.h', 'srandom', required: true)
 
