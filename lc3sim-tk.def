@@ -53,7 +53,7 @@ proc set_default_options {} {
     global option
 
     set option(code_width)     60
-    set option(code_height)    40
+    set option(code_height)    30
     set option(code_font)      @@CODE_FONT@@
     set option(code_bg)        Blue4
     set option(code_fg)        Yellow

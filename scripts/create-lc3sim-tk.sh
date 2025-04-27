@@ -25,4 +25,4 @@ sed \
   "$infile" > "$outfile"
 
 # Fix permissions on the output file
-chmod -v u+x "$outfile"
+chmod u+x "$outfile"

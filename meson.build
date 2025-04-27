@@ -52,7 +52,7 @@ if not xxd.found()
                             'scripts/generate-header.c',
                             install: false)
 else
-    summary('xxd_header_gen', true, bool_yn: true)
+    summary('use_xxd', true, bool_yn: true)
     header_gen = 'scripts/generate-header-for-binary.sh'
 endif
 
