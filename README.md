@@ -45,6 +45,8 @@ I also fixed the vast majority of the compiler warnings.
 
 The `lc3sim` code has been massively reorganized, and some variable and argument types have been changed. For example, most status variables are now booleans.
 
+I added support for using libedit in the place of readline. This is not well-tested.
+
 Behavioral changes: `lc3sim-tk` would wait 250ms to display output from the LC-3 if a newline wasn't present, which could cause noticeable input lag. Now it only waits 5ms. It also has optional support for an idle mode when LC-3 is waiting for input (which can be disabled with the "idle\_sleep" feature).
 
 ## To-Do ##
@@ -52,9 +54,12 @@ Behavioral changes: `lc3sim-tk` would wait 250ms to display output from the LC-3
 ### Bug Fixes ###
  - Fix the macOS "hangs when close button is clicked" bug
  - Find more macOS bugs
+ - Bug under libedit: tab completion can erroneously escape spaces in a file name
+ - Bug with readline/libedit: weird behavior around filename completion when spaces are in a file name
 
 ### Porting ###
  - Test on Macs (at least more so)
+ - Work on support for using libedit instead of libreadline (using readline compatibility)
  - Have better endian handling. It currently byteswaps unconditionally, which may break when run on big-endian systems. Make macros which convert to and from big endian.
  - Make it run under MSYS2 on Windows systems
    - Stretch goal: make it run under native Windows. This requires replacing usage of a few functions in `lc3sim`:

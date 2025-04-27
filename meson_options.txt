@@ -1,4 +1,5 @@
 option('readline', type: 'feature', description: 'Enable support for the readline library')
+option('libedit', type: 'feature', description: 'Enable support for libedit (conflicts with readline)')
 option('xxd', type: 'feature', description: 'Use xxd to generate headers for including the LC-3 operating system into the simulator (uses internal fallback if disabled)')
 option('hardcode_wish_path', type: 'boolean', description: 'Hardcode build-time path to wish in lc3sim-tk', value: false)
 option('idle_sleep', type: 'feature', description: 'Reduce CPU usage when LC-3 is waiting for input by using short sleeps')

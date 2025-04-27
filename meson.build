@@ -2,24 +2,47 @@ project('lc3tools-ng', 'c', version: '13.0', license: 'GPL-2.0-only')
 
 cc = meson.get_compiler('c')
 
+use_xxd = get_option('xxd')
+use_readline = get_option('readline')
+# Prefer readline over libedit, I'm using a readline compatibility layer for
+# libedit anyways
+use_libedit = get_option('libedit').disable_auto_if(use_readline.enabled())
+# Enforce mutually-exclusive readline/libedit (this errors if both are enabled)
+use_readline = use_readline.require(not use_libedit.enabled(),
+                                    error_message: 'Readline cannot be enabled at the same time as libedit')
+enable_idle = get_option('idle_sleep')
+hardcode_wish_path = get_option('hardcode_wish_path')
+
 flex = find_program('flex', '/usr/bin/flex', required: true)
 sed = find_program('sed', '/usr/bin/sed', '/bin/sed', required: true)
 wish = find_program('wish', '/usr/bin/wish', '/sw/bin/wish', required: true)
 # Needed to generate OS-inclusion headers (to include it in the binary)
 xxd = find_program('xxd', '/usr/bin/xxd', '/bin/xxd', '/usr/local/bin/xxd',
-                   required: get_option('xxd'))
+                   required: use_xxd)
 
-readline = dependency('readline', required: get_option('readline'))
-# Indicates to build with readline support
-if readline.found()
-    add_project_arguments('-DUSE_READLINE=1', language: 'c')
-    summary('readline', true, bool_yn: true)
-else
-    summary('readline', false, bool_yn: true)
-endif
-
+# Dependencies for lc3sim
+lc3sim_deps = []
 # Optional features for lc3sim
 lc3sim_options = []
+
+readline = dependency('readline', required: use_readline)
+# Indicates to build with readline support
+if readline.found()
+    lc3sim_options += '-DUSE_READLINE=1'
+    lc3sim_deps += readline
+    summary('readline', true, bool_yn: true)
+    summary('libedit', false, bool_yn: true)
+else
+    summary('readline', false, bool_yn: true)
+    libedit = dependency('libedit', required: use_libedit)
+    if libedit.found()
+        lc3sim_options += '-DUSE_READLINE=1'
+        lc3sim_deps += libedit
+        summary('libedit', true, bool_yn: true)
+    else
+        summary('libedit', false, bool_yn: true)
+    endif
+endif
 
 # Test for needed functions
 # These keep it from running on Windows.
@@ -37,7 +60,7 @@ cc.has_header_symbol('sys/termios.h', 'tcflush', required: true)
 # random()/srandom() are easily replaced by rand()/srand(), though.
 cc.has_header_symbol('stdlib.h', 'srandom', required: true)
 
-if cc.has_header_symbol('time.h', 'nanosleep', required: get_option('idle_sleep'))
+if cc.has_header_symbol('time.h', 'nanosleep', required: enable_idle)
     lc3sim_options += '-DLC3SIM_IDLE'
     summary('idle_sleep', true, bool_yn: true)
 else
@@ -57,7 +80,7 @@ else
 endif
 
 # Path to wish may optionally be hardcoded
-if get_option('hardcode_wish_path') == true
+if hardcode_wish_path == true
     wish_sub=wish.full_path()
 else
     wish_sub='wish'
@@ -121,7 +144,7 @@ lc3os_sym_h = custom_target('lc3os_sym_h',
 lc3sim = executable('lc3sim', 'lc3sim.c', 'symbol.c', lc3os_obj_h, lc3os_sym_h,
                     c_args: ['-DLC3SIM_INCBIN=1',
                              '-DMAP_LOCATION_TO_SYMBOL'] + lc3sim_options,
-                    dependencies: [readline],
+                    dependencies: lc3sim_deps,
                     install: true)
 
 # Now for lc3sim-tk, this requires substituting paths out.
