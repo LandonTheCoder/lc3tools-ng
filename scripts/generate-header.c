@@ -12,6 +12,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+// For isalnum(), isdigit()
+#include <ctype.h>
+
+// The number of bytes to dump per header line
+#define DUMP_BYTES_PER_LINE 12
 
 // Constants
 const char data_prefix[] = "unsigned const char ";
@@ -49,6 +54,7 @@ void usage(void) {
 
 static void generate_infile_var_name(void) {
     int start_index = 0;
+    // Note: this path-elimination is incompatible with `xxd -i`
     for (int index = 0; index <= infile_path_len; index++) {
         if (infile_path[index] == '/') {
             // Path separator (on all major OSes)
@@ -61,22 +67,26 @@ static void generate_infile_var_name(void) {
         }
 #endif
     }
-    strcpy(infile_var_name, infile_path + start_index);
+    // Moved up here because it may need to be expanded
     int end_index = infile_path_len - start_index;
+    // Done for compatibility with `xxd -i`
+    if (isdigit(infile_path[start_index])) {
+        infile_var_name[0] = '_';
+        infile_var_name[1] = '_';
+        // It is 2 characters longer now
+        end_index += 2;
+    }
+    strcat(infile_var_name, infile_path + start_index);
 
     for (int index = 0; index < end_index; index++) {
         char test_char = infile_var_name[index];
         // Test for allowed ASCII characters
-        if ((test_char >= 0x30 && test_char <= 0x39) /* 0-9 */
-            || (test_char >= 0x41 && test_char <= 0x5a) /* A-Z */
-            || (test_char >= 0x61 && test_char <= 0x7a) /* a-z */
-            || test_char == '_') {
-            // Acceptable character
-            ;
-        } else if (test_char == '\0') {
+        // It can be [A-Za-z0-9_], where numbers cannot start it.
+        if (test_char == '\0') {
             // What happened here?
-            fprintf(stderr, "Bounds exceeded at index %i, end_index = %i\n", index, end_index);
-        } else {
+            fprintf(stderr, "Bounds exceeded at index %i, end_index = %i\n",
+                    index, end_index);
+        } else if (!isalnum(test_char)) {
             // Not matching, correct it
             infile_var_name[index] = '_';
         }
@@ -111,8 +121,8 @@ int main(int argl, char **args) {
 
     strcpy(outbuf, data_prefix);
 
-    // Can hold filename's length
-    infile_var_name = calloc(infile_path_len + 1, 1);
+    // Can hold filename's length, plus 2 chars that may be added as prefix
+    infile_var_name = calloc(infile_path_len + 3, 1);
 
     generate_infile_var_name();
 
@@ -128,8 +138,8 @@ int main(int argl, char **args) {
     memset(outbuf, 0, data_prefix_len + infile_var_name_len + 7);
 
     int outbuf_index = 0;
-    // I print 12 bytes per line.
-    int outbuf_byte_count = 12;
+    // I print DUMP_BYTES_PER_LINE bytes per line (12 by default).
+    int outbuf_byte_count = DUMP_BYTES_PER_LINE;
 
 //    return 0;
 
@@ -144,7 +154,7 @@ int main(int argl, char **args) {
 
         // Note: This is to avoid off-by-one errors.
         for (int index = 0; index < read_size; index++) {
-            if (outbuf_byte_count == 12) {
+            if (outbuf_byte_count == DUMP_BYTES_PER_LINE) {
                 strcpy(outbuf + outbuf_index, "  ");
                 outbuf_index += 2;
             }
@@ -172,7 +182,7 @@ int main(int argl, char **args) {
                 // Wrap to newline
                 outbuf[outbuf_index] = '\n';
                 outbuf_index++;
-                outbuf_byte_count = 12;
+                outbuf_byte_count = DUMP_BYTES_PER_LINE;
             } else {
                 // Add space
                 outbuf[outbuf_index] = ' ';
@@ -189,13 +199,11 @@ int main(int argl, char **args) {
     } while (!file_fully_read);
 
     // Flush outbuf
-    if (outbuf_index > 0) {
-        outbuf_index--;
-        // Replace comma with a newline to be compatible with xxd header dump.
-        outbuf[outbuf_index - 1] = '\n';
-        write_size = fwrite(outbuf, 1, outbuf_index, outfile);
-//        fprintf(stderr, "Flushed %zi bytes\n", write_size);
-    }
+    // Replace comma with a newline to be compatible with xxd header dump.
+    outbuf_index--;
+    outbuf[outbuf_index - 1] = '\n'; // There was a comma here
+    write_size = fwrite(outbuf, 1, outbuf_index, outfile);
+//    fprintf(stderr, "Flushed %zi bytes\n", write_size);
 
     // Now write out footer and other information.
     // inbuf should be cleared.
